@@ -10,14 +10,11 @@ const typeHeading = {
 async function main() {
 	const url = new URL(process.argv[2]);
 	console.log(`Navigating to ${url} ...`);
-	let lastType;
+	let lastType: undefined | keyof typeof typeHeading;
 	for await (const result of checkLinks(url)) {
 		if (result.type !== lastType) {
 			lastType = result.type;
-			const heading = `${typeHeading[result.type]}:`;
-			console.log();
-			console.log(heading);
-			console.log("-".repeat(heading.length));
+			printHeading(lastType);
 		}
 		const output = formatOutput(result);
 		console.log(output);
@@ -28,6 +25,13 @@ main().catch(error => {
 	console.error(error.message);
 	process.exit(1);
 });
+
+function printHeading(type: keyof typeof typeHeading) {
+	const heading = `${typeHeading[type]}:`;
+	console.log();
+	console.log(heading);
+	console.log("-".repeat(heading.length));
+}
 
 function formatOutput(result: Entry) {
 	const { input, output } = result;
