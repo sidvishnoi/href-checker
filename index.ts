@@ -91,8 +91,8 @@ function getSamePageLinks(page: Page) {
 
 async function* checkSamePageLinks(links: Map<string, number>, page: Page) {
 	for (const [link, count] of links) {
-		const valid = await page.$eval(`[id=${link.slice(1)}]`, elem => !!elem);
-		yield { link, page: true, fragment: valid, count };
+		const fragExists = await isFragmentValid(link, page);
+		yield { link, page: true, fragment: fragExists, count };
 	}
 }
 
@@ -109,9 +109,7 @@ async function* checkOffPageLinks(
 			const pageExists = !response || response.ok();
 			let fragExists;
 			if (pageExists && url.hash && options.fragments) {
-				const id = url.hash.slice(1);
-				const selector = `[id='${id}'], [name='${id}']`;
-				fragExists = await page.$eval(selector, el => !!el).catch(() => false);
+				fragExists = await isFragmentValid(url.hash, page);
 			}
 			return { page: pageExists, fragment: fragExists };
 		} catch (error) {
@@ -129,6 +127,16 @@ async function* checkOffPageLinks(
 		const link = uniqueLinks[i];
 		const result = await resultPromises[i];
 		yield { link, ...result, count: links.get(link)! };
+	}
+}
+
+async function isFragmentValid(hash: string, page: Page) {
+	const id = hash.replace(/^#/, "");
+	const selector = `[id='${id}'], [name='${id}']`;
+	try {
+		return page.$eval(selector, el => !!el);
+	} catch {
+		return false;
 	}
 }
 
