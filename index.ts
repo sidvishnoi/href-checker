@@ -44,21 +44,21 @@ export async function* checkLinks(url: URL, options: Partial<Options> = {}) {
 		if (opts.samePage) {
 			const samePageLinks = await getSamePageLinks(page);
 			for await (const res of checkSamePageLinks(samePageLinks, page)) {
-				yield { ...res, type: "same-page" };
+				yield { ...res, type: "same-page" as const };
 			}
 		}
 
 		if (opts.sameSite) {
 			const sameSiteLinks = await getSameSiteLinks(page);
 			for await (const res of checkOffPageLinks(sameSiteLinks, browser, opts)) {
-				yield { ...res, type: "same-site" };
+				yield { ...res, type: "same-site" as const };
 			}
 		}
 
 		if (opts.offSite) {
 			const externalLinks = await getExternalLinks(page);
 			for await (const res of checkOffPageLinks(externalLinks, browser, opts)) {
-				yield { ...res, type: "off-site" };
+				yield { ...res, type: "off-site" as const };
 			}
 		}
 	} catch (error) {
@@ -126,6 +126,7 @@ async function* checkOffPageLinks(
 	const linkCounter = createCounter(links);
 	const uniqueLinks = [...linkCounter.keys()];
 	// TODO: limit concurrency
+	// TODO: retry on TimeoutError
 	const resultPromises = uniqueLinks.map(isValidLink);
 	for (let i = 0; i < uniqueLinks.length; i++) {
 		const link = uniqueLinks[i];
