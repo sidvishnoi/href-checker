@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { checkLinks } from "./index.js";
+import { checkLinks, Entry } from "./index.js";
 
 const typeHeading = {
 	"same-page": "Same page links (fragments)",
@@ -29,14 +29,15 @@ main().catch(error => {
 	process.exit(1);
 });
 
-function formatOutput(result: any) {
+function formatOutput(result: Entry) {
+	const { input, output } = result;
 	const resultType = getResultType(result);
-	let output = getResultEmoji(resultType);
-	output += `\t${result.link} [x${result.count}]`;
-	if (result.error) {
-		output += ` (${result.error})`;
+	let text = getResultEmoji(resultType);
+	text += `\t${input.link} [x${input.count}]`;
+	if (output.error) {
+		text += ` (${output.error})`;
 	}
-	return output;
+	return text;
 }
 
 const enum ResultType {
@@ -46,11 +47,12 @@ const enum ResultType {
 	error,
 }
 
-function getResultType(result: any): ResultType {
-	if (result.error) return ResultType.error;
-	if (!result.page) return ResultType.invalidPage;
-	if (typeof result.fragment !== "boolean") return ResultType.ok;
-	return result.fragment ? ResultType.ok : ResultType.invalidFragment;
+function getResultType(result: Entry): ResultType {
+	const { error, pageExists, fragExists } = result.output;
+	if (error) return ResultType.error;
+	if (!pageExists) return ResultType.invalidPage;
+	if (typeof fragExists !== "boolean") return ResultType.ok;
+	return fragExists ? ResultType.ok : ResultType.invalidFragment;
 }
 
 function getResultEmoji(resultType: ResultType) {

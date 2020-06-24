@@ -26,7 +26,16 @@ const defaults: Options = {
 	},
 };
 
-export async function* checkLinks(url: URL, options: Partial<Options> = {}) {
+export interface Entry {
+	input: { link: string; count: number };
+	output: Partial<{ pageExists: boolean; fragExists: boolean; error: Error }>;
+	type: "same-page" | "same-site" | "off-site";
+}
+
+export async function* checkLinks(
+	url: URL,
+	options: Partial<Options> = {},
+): AsyncGenerator<Entry, void, void> {
 	const opts = { ...defaults, ...options };
 	opts.puppeteer = { ...defaults.puppeteer, ...options.puppeteer };
 
@@ -43,13 +52,13 @@ export async function* checkLinks(url: URL, options: Partial<Options> = {}) {
 
 		const links = await getAllLinks(page, opts);
 		for await (const res of checkSamePageLinks(links.samePage, page)) {
-			yield { ...res, type: "same-page" as const };
+			yield { ...res, type: "same-page" };
 		}
 		for await (const res of checkOffPageLinks(links.sameSite, browser, opts)) {
-			yield { ...res, type: "same-site" as const };
+			yield { ...res, type: "same-site" };
 		}
 		for await (const res of checkOffPageLinks(links.offSite, browser, opts)) {
-			yield { ...res, type: "off-site" as const };
+			yield { ...res, type: "off-site" };
 		}
 	} catch (error) {
 		caughtError = error;
@@ -92,7 +101,7 @@ function getSamePageLinks(page: Page) {
 async function* checkSamePageLinks(links: Map<string, number>, page: Page) {
 	for (const [link, count] of links) {
 		const fragExists = await isFragmentValid(link, page);
-		yield { link, page: true, fragment: fragExists, count };
+		yield { input: { link, count }, output: { pageExists: true, fragExists } };
 	}
 }
 
@@ -110,7 +119,7 @@ async function* checkOffPageLinks(
 	for (let i = 0; i < uniqueLinks.length; i++) {
 		const link = uniqueLinks[i];
 		const result = await resultPromises[i];
-		yield { link, ...result, count: links.get(link)! };
+		yield { input: { link, count: links.get(link)! }, output: result };
 	}
 }
 
@@ -128,7 +137,7 @@ async function isLinkValid(
 	link: string,
 	options: Options,
 	browser: Browser,
-): Promise<{ error: Error } | { page: boolean; fragment?: boolean }> {
+): Promise<{ error: Error } | { pageExists: boolean; fragExists?: boolean }> {
 	const url = new URL(link);
 	const page = await browser.newPage();
 	try {
@@ -138,7 +147,7 @@ async function isLinkValid(
 		if (options.fragments && pageExists && url.hash) {
 			fragExists = await isFragmentValid(url.hash, page);
 		}
-		return { page: pageExists, fragment: fragExists };
+		return { pageExists, fragExists };
 	} catch (error) {
 		return { error };
 	} finally {
