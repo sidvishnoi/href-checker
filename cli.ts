@@ -30,22 +30,38 @@ main().catch(error => {
 });
 
 function formatOutput(result: any) {
-	let output;
-	if (result.error) {
-		output = `🚨`;
-	} else {
-		if (!result.page) {
-			output = "❌";
-		} else if (typeof result.fragment === "boolean") {
-			output = result.fragment ? "✅" : "🚧";
-		} else {
-			output = "✅";
-		}
-	}
-
+	const resultType = getResultType(result);
+	let output = getResultEmoji(resultType);
 	output += `\t${result.link} [x${result.count}]`;
 	if (result.error) {
 		output += ` (${result.error})`;
 	}
 	return output;
+}
+
+const enum ResultType {
+	ok,
+	invalidPage,
+	invalidFragment,
+	error,
+}
+
+function getResultType(result: any): ResultType {
+	if (result.error) return ResultType.error;
+	if (!result.page) return ResultType.invalidPage;
+	if (typeof result.fragment !== "boolean") return ResultType.ok;
+	return result.fragment ? ResultType.ok : ResultType.invalidFragment;
+}
+
+function getResultEmoji(resultType: ResultType) {
+	switch (resultType) {
+		case ResultType.ok:
+			return "✅";
+		case ResultType.invalidPage:
+			return "❌";
+		case ResultType.invalidFragment:
+			return "🚧";
+		case ResultType.error:
+			return "🚨";
+	}
 }
