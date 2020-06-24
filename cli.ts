@@ -2,9 +2,9 @@
 import { checkLinks, Entry } from "./index.js";
 
 const typeHeading = {
-	"same-page": "Same page links (fragments)",
-	"same-site": "Same site links",
-	"off-site": "External links",
+	samePage: "Same page links (fragments)",
+	sameSite: "Same site links",
+	offSite: "External links",
 };
 
 async function main() {

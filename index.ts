@@ -29,7 +29,7 @@ const defaults: Options = {
 export interface Entry {
 	input: { link: string; count: number };
 	output: Partial<{ pageExists: boolean; fragExists: boolean; error: Error }>;
-	type: "same-page" | "same-site" | "off-site";
+	type: "samePage" | "sameSite" | "offSite";
 }
 
 export async function* checkLinks(
@@ -52,13 +52,13 @@ export async function* checkLinks(
 
 		const links = await getAllLinks(page, opts);
 		for await (const res of checkSamePageLinks(links.samePage, page)) {
-			yield { ...res, type: "same-page" };
+			yield { ...res, type: "samePage" };
 		}
 		for await (const res of checkOffPageLinks(links.sameSite, browser, opts)) {
-			yield { ...res, type: "same-site" };
+			yield { ...res, type: "sameSite" };
 		}
 		for await (const res of checkOffPageLinks(links.offSite, browser, opts)) {
-			yield { ...res, type: "off-site" };
+			yield { ...res, type: "offSite" };
 		}
 	} catch (error) {
 		caughtError = error;
