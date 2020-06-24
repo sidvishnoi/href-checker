@@ -101,30 +101,12 @@ async function* checkOffPageLinks(
 	browser: Browser,
 	options: Options,
 ) {
-	const checkFragments = options.fragments;
-	type OffPageResult = { error: Error } | { page: boolean; fragment?: boolean };
-	const isValidLink = async (link: string): Promise<OffPageResult> => {
-		const url = new URL(link);
-		const page = await browser.newPage();
-		try {
-			const response = await page.goto(link, options.puppeteer);
-			const pageExists = !response || response.ok();
-			let fragExists;
-			if (checkFragments && pageExists && url.hash) {
-				fragExists = await isFragmentValid(url.hash, page);
-			}
-			return { page: pageExists, fragment: fragExists };
-		} catch (error) {
-			return { error: error };
-		} finally {
-			await page.close();
-		}
-	};
-
 	const uniqueLinks = [...links.keys()];
 	// TODO: limit concurrency
 	// TODO: retry on TimeoutError
-	const resultPromises = uniqueLinks.map(isValidLink);
+	const resultPromises = uniqueLinks.map(link =>
+		isLinkValid(link, options, browser),
+	);
 	for (let i = 0; i < uniqueLinks.length; i++) {
 		const link = uniqueLinks[i];
 		const result = await resultPromises[i];
@@ -139,6 +121,28 @@ async function isFragmentValid(hash: string, page: Page) {
 		return page.$eval(selector, el => !!el);
 	} catch {
 		return false;
+	}
+}
+
+async function isLinkValid(
+	link: string,
+	options: Options,
+	browser: Browser,
+): Promise<{ error: Error } | { page: boolean; fragment?: boolean }> {
+	const url = new URL(link);
+	const page = await browser.newPage();
+	try {
+		const response = await page.goto(link, options.puppeteer);
+		const pageExists = !response || response.ok();
+		let fragExists;
+		if (options.fragments && pageExists && url.hash) {
+			fragExists = await isFragmentValid(url.hash, page);
+		}
+		return { page: pageExists, fragment: fragExists };
+	} catch (error) {
+		return { error };
+	} finally {
+		await page.close();
 	}
 }
 
