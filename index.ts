@@ -101,7 +101,8 @@ async function* checkOffPageLinks(
 	browser: Browser,
 	options: Options,
 ) {
-	const isValidLink = async (link: string) => {
+	type OffPageResult = { error: Error } | { page: boolean; fragment?: boolean };
+	const isValidLink = async (link: string): Promise<OffPageResult> => {
 		const url = new URL(link);
 		const page = await browser.newPage();
 		try {
