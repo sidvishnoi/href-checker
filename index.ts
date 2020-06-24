@@ -41,25 +41,15 @@ export async function* checkLinks(url: URL, options: Partial<Options> = {}) {
 			throw new Error(`Failed to navigate to ${url}${reason}`);
 		}
 
-		if (opts.samePage) {
-			const samePageLinks = await getSamePageLinks(page);
-			for await (const res of checkSamePageLinks(samePageLinks, page)) {
-				yield { ...res, type: "same-page" as const };
-			}
+		const links = await getAllLinks(page, opts);
+		for await (const res of checkSamePageLinks(links.samePage, page)) {
+			yield { ...res, type: "same-page" as const };
 		}
-
-		if (opts.sameSite) {
-			const sameSiteLinks = await getSameSiteLinks(page);
-			for await (const res of checkOffPageLinks(sameSiteLinks, browser, opts)) {
-				yield { ...res, type: "same-site" as const };
-			}
+		for await (const res of checkOffPageLinks(links.sameSite, browser, opts)) {
+			yield { ...res, type: "same-site" as const };
 		}
-
-		if (opts.offSite) {
-			const externalLinks = await getExternalLinks(page);
-			for await (const res of checkOffPageLinks(externalLinks, browser, opts)) {
-				yield { ...res, type: "off-site" as const };
-			}
+		for await (const res of checkOffPageLinks(links.offSite, browser, opts)) {
+			yield { ...res, type: "off-site" as const };
 		}
 	} catch (error) {
 		caughtError = error;
@@ -67,6 +57,14 @@ export async function* checkLinks(url: URL, options: Partial<Options> = {}) {
 		await browser.close();
 		if (caughtError) throw caughtError;
 	}
+}
+
+export async function getAllLinks(page: Page, options: Options) {
+	return {
+		samePage: count(options.samePage ? await getSamePageLinks(page) : []),
+		sameSite: count(options.sameSite ? await getSameSiteLinks(page) : []),
+		offSite: count(options.offSite ? await getExternalLinks(page) : []),
+	};
 }
 
 function getExternalLinks(page: Page) {
@@ -91,15 +89,15 @@ function getSamePageLinks(page: Page) {
 	});
 }
 
-async function* checkSamePageLinks(links: string[], page: Page) {
-	for (const [link, count] of createCounter(links)) {
+async function* checkSamePageLinks(links: Map<string, number>, page: Page) {
+	for (const [link, count] of links) {
 		const valid = await page.$eval(`[id=${link.slice(1)}]`, elem => !!elem);
 		yield { link, page: true, fragment: valid, count };
 	}
 }
 
 async function* checkOffPageLinks(
-	links: string[],
+	links: Map<string, number>,
 	browser: Browser,
 	options: Options,
 ) {
@@ -123,19 +121,18 @@ async function* checkOffPageLinks(
 		}
 	};
 
-	const linkCounter = createCounter(links);
-	const uniqueLinks = [...linkCounter.keys()];
+	const uniqueLinks = [...links.keys()];
 	// TODO: limit concurrency
 	// TODO: retry on TimeoutError
 	const resultPromises = uniqueLinks.map(isValidLink);
 	for (let i = 0; i < uniqueLinks.length; i++) {
 		const link = uniqueLinks[i];
 		const result = await resultPromises[i];
-		yield { link, ...result, count: linkCounter.get(link)! };
+		yield { link, ...result, count: links.get(link)! };
 	}
 }
 
-function createCounter<T>(items: T[]) {
+function count<T>(items: T[]) {
 	const counts = new Map<T, number>();
 	for (const item of items) {
 		const count = counts.get(item) || 0;
