@@ -101,6 +101,7 @@ async function* checkOffPageLinks(
 	browser: Browser,
 	options: Options,
 ) {
+	const checkFragments = options.fragments;
 	type OffPageResult = { error: Error } | { page: boolean; fragment?: boolean };
 	const isValidLink = async (link: string): Promise<OffPageResult> => {
 		const url = new URL(link);
@@ -109,7 +110,7 @@ async function* checkOffPageLinks(
 			const response = await page.goto(link, options.puppeteer);
 			const pageExists = !response || response.ok();
 			let fragExists;
-			if (pageExists && url.hash && options.fragments) {
+			if (checkFragments && pageExists && url.hash) {
 				fragExists = await isFragmentValid(url.hash, page);
 			}
 			return { page: pageExists, fragment: fragExists };
