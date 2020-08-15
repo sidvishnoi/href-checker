@@ -49,8 +49,10 @@ sade("hyperlinkinator <url>", true)
 						waitUntil: options["wait-until"],
 					},
 				},
-				emoji: options["emoji"],
-				format: options.format || "pretty",
+				outputOptions: {
+					emoji: options.emoji,
+					format: options.format || "pretty",
+				},
 			});
 		} catch (error) {
 			console.error(error.message);
@@ -61,18 +63,20 @@ sade("hyperlinkinator <url>", true)
 
 interface Opts {
 	options: Options;
-	emoji: boolean;
-	format: CommandLineOptions["format"];
+	outputOptions: {
+		emoji: CommandLineOptions["emoji"];
+		format: CommandLineOptions["format"];
+	};
 }
-async function main(url: URL, options: Opts) {
+async function main(url: URL, { options, outputOptions }: Opts) {
 	console.log(`Navigating to ${url} ...`);
-	for await (const result of checkLinks(url, options.options)) {
-		const output = formatOutput(result, { emoji: options.emoji });
+	for await (const result of checkLinks(url, options)) {
+		const output = formatOutput(result, outputOptions);
 		console.log(output);
 	}
 }
 
-function formatOutput(result: Entry, options: { emoji: boolean }) {
+function formatOutput(result: Entry, options: Opts["outputOptions"]) {
 	const { input, output } = result;
 	const resultType = getResultType(result);
 	const status = options.emoji
