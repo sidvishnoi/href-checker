@@ -103,7 +103,11 @@ function formatOutput(result: Entry, options: Opts["outputOptions"]) {
 	const status = options.emoji
 		? getResultEmoji(resultType)
 		: getResultText(resultType);
-	let text = `[${result.type}]\t${status}\t${input.link} [x${input.count}]`;
+	const statusCode =
+		!output.error && !output.pageExists && output.status
+			? ` {${output.status}}`
+			: "";
+	let text = `[${result.type}]\t${status}\t${input.link} [x${input.count}]${statusCode}`;
 	if (output.error) {
 		text += ` (${output.error})`;
 	}

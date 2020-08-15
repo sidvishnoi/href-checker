@@ -28,7 +28,12 @@ const defaults: Options = {
 
 export interface Entry {
 	input: { link: string; count: number };
-	output: Partial<{ pageExists: boolean; fragExists: boolean; error: Error }>;
+	output: Partial<{
+		pageExists: boolean;
+		status: number;
+		fragExists: boolean;
+		error: Error;
+	}>;
 	type: "samePage" | "sameSite" | "offSite";
 }
 
@@ -138,7 +143,10 @@ async function isLinkValid(
 	link: string,
 	options: Options,
 	browser: Browser,
-): Promise<{ error: Error } | { pageExists: boolean; fragExists?: boolean }> {
+): Promise<
+	| { error: Error }
+	| { pageExists: boolean; fragExists?: boolean; status?: number }
+> {
 	const url = new URL(link);
 	const page = await browser.newPage();
 	try {
@@ -148,7 +156,7 @@ async function isLinkValid(
 		if (options.fragments && pageExists && url.hash && url.hash.length > 1) {
 			fragExists = await isFragmentValid(url.hash, page);
 		}
-		return { pageExists, fragExists };
+		return { pageExists, fragExists, status: response?.status() };
 	} catch (error) {
 		return { error };
 	} finally {
