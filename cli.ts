@@ -21,6 +21,9 @@ interface CommandLineOptions {
 
 sade("hyperlinkinator <url>", true)
 	.version(JSON.parse(readFileSync("./package.json", "utf-8")).version)
+	.example("https://example.com")
+	.example("https://sidvishnoi.github.io/ --no-off-site --format=json")
+	.example("https://www.w3.org/ --no-same-site --no-same-page --no-fragments")
 	.option("--same-page", "Check same-page (fragment) links", true)
 	.option("--same-site", "Check same-site links", true)
 	.option("--off-site", "Check external links", true)
