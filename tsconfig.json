@@ -1,14 +1,14 @@
 {
-  "compilerOptions": {
-    "target": "esnext",
-    "module": "ES2020",
-    "moduleResolution": "node",
-    "removeComments": false,
-    "allowSyntheticDefaultImports": true,
-    "typeRoots": [
-      "./node_modules/@types",
-      "./@types"
-    ],
-    "strict": true
-  }
+	"compilerOptions": {
+		"target": "esnext",
+		"module": "ES2020",
+		"moduleResolution": "node",
+		"removeComments": false,
+		"allowSyntheticDefaultImports": true,
+		"typeRoots": [
+			"./node_modules/@types",
+			"./@types"
+		],
+		"strict": true
+	}
 }
