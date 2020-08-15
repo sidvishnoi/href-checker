@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 import sade from "sade";
-import { checkLinks, Entry, Options } from "./index.js";
 import { readFileSync } from "fs";
 
+import { checkLinks } from "./index.js";
+
+import { Entry, Options } from "./index.js";
 import { DirectNavigationOptions } from "puppeteer";
 
 const typeHeading = {
