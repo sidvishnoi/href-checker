@@ -1,0 +1,20 @@
+name: npm publish
+on:
+  release:
+    types: [published]
+jobs:
+  publish-npm:
+    name: Build and Publish to npm
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: "14"
+      - run: yarn install
+        env:
+          PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 1
+      - run: yarn build
+      - run: yarn publish
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.YARN_TOKEN}}
