@@ -73,7 +73,9 @@ interface Opts {
 	};
 }
 async function main(url: URL, { options, outputOptions }: Opts) {
-	console.log(`Navigating to ${url} ...`);
+	if (!outputOptions.silent && outputOptions.format !== "json") {
+		console.log(`Navigating to ${url} ...`);
+	}
 	for await (const result of checkLinks(url, options)) {
 		const output = formatOutput(result, outputOptions);
 		if (output) console.log(output);
