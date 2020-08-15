@@ -128,7 +128,7 @@ async function isFragmentValid(hash: string, page: Page) {
 	const id = hash.replace(/^#/, "");
 	const selector = `[id='${id}'], [name='${id}']`;
 	try {
-		return page.$eval(selector, el => !!el);
+		return await page.$eval(selector, el => !!el);
 	} catch {
 		return false;
 	}
