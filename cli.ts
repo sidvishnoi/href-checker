@@ -91,6 +91,10 @@ function formatOutput(result: Entry, options: Opts["outputOptions"]) {
 	}
 
 	if (options.format === "json") {
+		if (result.output.error) {
+			const { name, message } = result.output.error;
+			result.output.error = { name, message };
+		}
 		return JSON.stringify(result);
 	}
 
