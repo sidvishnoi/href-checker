@@ -16,6 +16,6 @@ jobs:
         env:
           PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 1
       - run: yarn build
-      - run: yarn publish
+      - run: yarn publish --access=public
         env:
           NODE_AUTH_TOKEN: ${{secrets.YARN_TOKEN}}
