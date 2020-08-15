@@ -15,6 +15,7 @@ interface CommandLineOptions {
 	timeout: number;
 	"wait-until": DirectNavigationOptions["waitUntil"];
 	format: "json" | "pretty";
+	silent: boolean;
 	emoji: boolean;
 }
 
@@ -35,6 +36,7 @@ sade("hyperlinkinator <url>", true)
 		"load",
 	)
 	.option("--format", "Format output as pretty or json", "pretty")
+	.option("--silent", "Show errors only", false)
 	.option("--emoji", "Use emoji in output (with --format=pretty)", true)
 	.action(async (url: string, options: CommandLineOptions) => {
 		try {
@@ -51,6 +53,7 @@ sade("hyperlinkinator <url>", true)
 				},
 				outputOptions: {
 					emoji: options.emoji,
+					silent: options.silent,
 					format: options.format || "pretty",
 				},
 			});
@@ -66,19 +69,25 @@ interface Opts {
 	outputOptions: {
 		emoji: CommandLineOptions["emoji"];
 		format: CommandLineOptions["format"];
+		silent: CommandLineOptions["silent"];
 	};
 }
 async function main(url: URL, { options, outputOptions }: Opts) {
 	console.log(`Navigating to ${url} ...`);
 	for await (const result of checkLinks(url, options)) {
 		const output = formatOutput(result, outputOptions);
-		console.log(output);
+		if (output) console.log(output);
 	}
 }
 
 function formatOutput(result: Entry, options: Opts["outputOptions"]) {
 	const { input, output } = result;
 	const resultType = getResultType(result);
+
+	if (options.silent && resultType === ResultType.ok) {
+		return null;
+	}
+
 	const status = options.emoji
 		? getResultEmoji(resultType)
 		: getResultText(resultType);
