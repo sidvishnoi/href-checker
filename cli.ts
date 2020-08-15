@@ -19,7 +19,7 @@ interface CommandLineOptions {
 	emoji: boolean;
 }
 
-sade("checklinks <url>", true)
+sade("href-checker <url>", true)
 	.version(JSON.parse(readFileSync("./package.json", "utf-8")).version)
 	.example("https://example.com")
 	.example("https://sidvishnoi.github.io/ --no-off-site --format=json")

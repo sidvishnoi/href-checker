@@ -1,5 +1,5 @@
 {
-	"name": "checklinks",
+	"name": "href-checker",
 	"version": "1.0.0",
 	"description": "Validate hyperlinks using puppeteer.",
 	"keywords": [
@@ -13,7 +13,7 @@
 	],
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/sidvishnoi/checklinks.git"
+		"url": "https://github.com/sidvishnoi/href-checker.git"
 	},
 	"license": "MIT",
 	"author": "Sid Vishnoi <sidvishnoi8@gmail.com> (https://sidvishnoi.github.io/)",

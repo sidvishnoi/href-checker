@@ -1,4 +1,4 @@
-# CheckLinks
+# href-checker
 
 Hyperlink checker for HTML pages which checks href attributes by visiting linked pages. Also checks existence of URL fragments.
 
@@ -12,14 +12,14 @@ Hyperlink checker for HTML pages which checks href attributes by visiting linked
 ## Usage (CLI)
 
 ```bash
-$ npm install -g checklinks
-$ checklinks https://example.com
+$ npm install -g href-checker
+$ href-checker https://example.com
 
 # or, with npx
-$ npx checklinks https://example.com
+$ npx href-checker https://example.com
 
 # See available options and examples
-$ checklinks --help
+$ href-checker --help
 ```
 
 ### Pro Tip:
@@ -38,13 +38,13 @@ export PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome
 ## Usage (as library)
 
 ```bash
-npm install checklinks
+npm install href-checker
 ```
 
 The package is available as an ES module.
 
 ```js
-import { checkLinks } from "checklinks";
+import { checkLinks } from "href-checker";
 
 for await (const result of checkLinks(url, options)) {
 	console.log(result.type);
@@ -66,7 +66,7 @@ for await (const result of checkLinks(url, options)) {
 }
 ```
 
-See available [options](https://github.com/sidvishnoi/checklinks/blob/main/index.ts).
+See available [options](https://github.com/sidvishnoi/href-checker/blob/main/index.ts).
 
 TypeScript declarations are included in the package.
 
@@ -79,7 +79,7 @@ jobs:
   name: Validate Hyperlinks
   runs-on: ubuntu-latest
   steps:
-    - run: npx linkchecker https://example.com
+    - run: npx href-checker https://example.com
       env:
         PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 1
         PUPPETEER_EXECUTABLE_PATH: /usr/bin/google-chrome
