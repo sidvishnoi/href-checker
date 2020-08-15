@@ -91,6 +91,8 @@ function formatOutput(result: Entry, options: Opts["outputOptions"]) {
 	}
 
 	if (options.format === "json") {
+		// @ts-ignore
+		result.output.summary = getResultText(resultType);
 		if (result.output.error) {
 			const { name, message } = result.output.error;
 			result.output.error = { name, message };
