@@ -100,6 +100,7 @@ function getSamePageLinks(page: Page) {
 
 async function* checkSamePageLinks(links: Map<string, number>, page: Page) {
 	for (const [link, count] of links) {
+		if (link.length <= 1) continue;
 		const fragExists = await isFragmentValid(link, page);
 		yield { input: { link, count }, output: { pageExists: true, fragExists } };
 	}
@@ -144,7 +145,7 @@ async function isLinkValid(
 		const response = await page.goto(link, options.puppeteer);
 		const pageExists = !response || response.ok();
 		let fragExists;
-		if (options.fragments && pageExists && url.hash) {
+		if (options.fragments && pageExists && url.hash && url.hash.length > 1) {
 			fragExists = await isFragmentValid(url.hash, page);
 		}
 		return { pageExists, fragExists };
