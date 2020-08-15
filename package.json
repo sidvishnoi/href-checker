@@ -2,7 +2,11 @@
 	"name": "checklinks",
 	"version": "1.0.0",
 	"main": "index.js",
+	"bin": "cli.js",
 	"type": "module",
+	"engines": {
+		"node": ">= 14.8"
+	},
 	"dependencies": {
 		"puppeteer": "^4.0.1",
 		"sade": "^1.7.3"
@@ -13,13 +17,24 @@
 		"typescript": "^3.9.5"
 	},
 	"scripts": {
-		"build": "tsc -d -p tsconfig.json",
-		"test": "echo \"Error: no test specified\" && exit 1"
+		"build": "tsc -d -p tsconfig.json"
 	},
-	"keywords": [],
+	"keywords": [
+		"link-checker",
+		"cli",
+		"library",
+		"validator",
+		"puppeteer",
+		"link-checking",
+		"hyperlink-auditing"
+	],
 	"author": "Sid Vishnoi <sidvishnoi8@gmail.com> (https://sidvishnoi.github.io/)",
 	"license": "MIT",
-	"description": "",
+	"description": "Validate hyperlinks using puppeteer.",
+	"repository": {
+		"url": "https://github.com/sidvishnoi/checklinks.git",
+		"type": "git"
+	},
 	"files": [
 		"index.d.ts",
 		"*.js"
