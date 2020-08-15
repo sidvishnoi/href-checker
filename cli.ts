@@ -88,6 +88,10 @@ function formatOutput(result: Entry, options: Opts["outputOptions"]) {
 		return null;
 	}
 
+	if (options.format === "json") {
+		return JSON.stringify(result);
+	}
+
 	const status = options.emoji
 		? getResultEmoji(resultType)
 		: getResultText(resultType);
