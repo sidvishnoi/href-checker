@@ -16,7 +16,7 @@ async function main() {
 			lastType = result.type;
 			printHeading(lastType);
 		}
-		const output = formatOutput(result);
+		const output = formatOutput(result, { emoji: true });
 		console.log(output);
 	}
 }
@@ -33,10 +33,12 @@ function printHeading(type: keyof typeof typeHeading) {
 	console.log("-".repeat(heading.length));
 }
 
-function formatOutput(result: Entry) {
+function formatOutput(result: Entry, options: { emoji: boolean }) {
 	const { input, output } = result;
 	const resultType = getResultType(result);
-	let text = getResultEmoji(resultType);
+	let text = options.emoji
+		? getResultEmoji(resultType)
+		: getResultText(resultType);
 	text += `\t${input.link} [x${input.count}]`;
 	if (output.error) {
 		text += ` (${output.error})`;
@@ -69,5 +71,18 @@ function getResultEmoji(resultType: ResultType) {
 			return "🚧";
 		case ResultType.error:
 			return "🚨";
+	}
+}
+
+function getResultText(resultType: ResultType) {
+	switch (resultType) {
+		case ResultType.ok:
+			return "ok";
+		case ResultType.invalidPage:
+			return "fail";
+		case ResultType.invalidFragment:
+			return "warn";
+		case ResultType.error:
+			return "err";
 	}
 }
