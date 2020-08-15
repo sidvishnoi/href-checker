@@ -1,11 +1,31 @@
 {
 	"name": "checklinks",
 	"version": "1.0.0",
+	"description": "Validate hyperlinks using puppeteer.",
+	"keywords": [
+		"link-checker",
+		"cli",
+		"library",
+		"validator",
+		"puppeteer",
+		"link-checking",
+		"hyperlink-auditing"
+	],
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/sidvishnoi/checklinks.git"
+	},
+	"license": "MIT",
+	"author": "Sid Vishnoi <sidvishnoi8@gmail.com> (https://sidvishnoi.github.io/)",
+	"type": "module",
 	"main": "index.js",
 	"bin": "cli.js",
-	"type": "module",
-	"engines": {
-		"node": ">= 14.8"
+	"files": [
+		"index.d.ts",
+		"*.js"
+	],
+	"scripts": {
+		"build": "tsc -d -p tsconfig.json"
 	},
 	"dependencies": {
 		"puppeteer": "^4.0.1",
@@ -16,27 +36,7 @@
 		"@types/sade": "^1.7.2",
 		"typescript": "^3.9.5"
 	},
-	"scripts": {
-		"build": "tsc -d -p tsconfig.json"
-	},
-	"keywords": [
-		"link-checker",
-		"cli",
-		"library",
-		"validator",
-		"puppeteer",
-		"link-checking",
-		"hyperlink-auditing"
-	],
-	"author": "Sid Vishnoi <sidvishnoi8@gmail.com> (https://sidvishnoi.github.io/)",
-	"license": "MIT",
-	"description": "Validate hyperlinks using puppeteer.",
-	"repository": {
-		"url": "https://github.com/sidvishnoi/checklinks.git",
-		"type": "git"
-	},
-	"files": [
-		"index.d.ts",
-		"*.js"
-	]
+	"engines": {
+		"node": ">= 14.8"
+	}
 }
