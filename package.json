@@ -1,5 +1,5 @@
 {
-	"name": "link-checker",
+	"name": "checklinks",
 	"version": "1.0.0",
 	"main": "index.js",
 	"type": "module",
