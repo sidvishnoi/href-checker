@@ -7,12 +7,6 @@ import { checkLinks } from "./index.js";
 import { Entry, Options } from "./index.js";
 import { DirectNavigationOptions } from "puppeteer";
 
-const typeHeading = {
-	samePage: "Same page links (fragments)",
-	sameSite: "Same site links",
-	offSite: "External links",
-};
-
 interface CommandLineOptions {
 	"same-page": boolean;
 	"same-site": boolean;
@@ -72,31 +66,19 @@ interface Opts {
 }
 async function main(url: URL, options: Opts) {
 	console.log(`Navigating to ${url} ...`);
-	let lastType: undefined | keyof typeof typeHeading;
 	for await (const result of checkLinks(url, options.options)) {
-		if (result.type !== lastType) {
-			lastType = result.type;
-			printHeading(lastType);
-		}
 		const output = formatOutput(result, { emoji: options.emoji });
 		console.log(output);
 	}
 }
 
-function printHeading(type: keyof typeof typeHeading) {
-	const heading = `${typeHeading[type]}:`;
-	console.log();
-	console.log(heading);
-	console.log("-".repeat(heading.length));
-}
-
 function formatOutput(result: Entry, options: { emoji: boolean }) {
 	const { input, output } = result;
 	const resultType = getResultType(result);
-	let text = options.emoji
+	const status = options.emoji
 		? getResultEmoji(resultType)
 		: getResultText(resultType);
-	text += `\t${input.link} [x${input.count}]`;
+	let text = `[${result.type}]\t${status}\t${input.link} [x${input.count}]`;
 	if (output.error) {
 		text += ` (${output.error})`;
 	}
