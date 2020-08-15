@@ -4,10 +4,12 @@
 	"main": "index.js",
 	"type": "module",
 	"dependencies": {
-		"puppeteer": "^4.0.1"
+		"puppeteer": "^4.0.1",
+		"sade": "^1.7.3"
 	},
 	"devDependencies": {
 		"@types/puppeteer": "^3.0.0",
+		"@types/sade": "^1.7.2",
 		"typescript": "^3.9.5"
 	},
 	"scripts": {
