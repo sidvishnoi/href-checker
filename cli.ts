@@ -55,6 +55,21 @@ sade("href-checker <url>", true)
 	.parse(process.argv);
 
 async function main(url: URL, opts: CommandLineOptions) {
+	const LinkType = {
+		"same-page": "samePage",
+		"same-site": "sameSite",
+		"off-site": "offSite",
+		fragments: "fragments",
+	} as const;
+
+	for (const type of Object.keys(LinkType) as Array<keyof typeof LinkType>) {
+		if (![false, "err", "warn"].includes(opts[type])) {
+			throw new Error(
+				`Invalid value ${JSON.stringify(opts[type])} for --${type}.`,
+			);
+		}
+	}
+
 	const options: Options = {
 		samePage: opts["same-page"] !== false,
 		sameSite: opts["same-site"] !== false,
@@ -69,12 +84,6 @@ async function main(url: URL, opts: CommandLineOptions) {
 
 	const errorIf: OutputOptions["errorIf"] = new Set();
 	const warnIf: OutputOptions["warnIf"] = new Set();
-	const LinkType = {
-		"same-page": "samePage",
-		"same-site": "sameSite",
-		"off-site": "offSite",
-		fragments: "fragments",
-	} as const;
 	for (const type of Object.keys(LinkType) as Array<keyof typeof LinkType>) {
 		const linkType = LinkType[type];
 		if (opts[type] === "err") {
