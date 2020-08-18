@@ -100,9 +100,15 @@ async function main(url: URL, opts: CommandLineOptions) {
 		warnIf,
 	};
 
+	let hasFailures = false;
 	for await (const result of checkLinks(url, options)) {
-		const output = formatOutput(result, outputOptions);
+		const resultType = getResultType(result, outputOptions);
+		if (resultType === ResultType.fail) hasFailures = true;
+		const output = formatOutput(result, resultType, outputOptions);
 		if (output) console.log(output);
+	}
+	if (hasFailures) {
+		throw new Error("Broken links found.")
 	}
 }
 
@@ -114,9 +120,12 @@ interface OutputOptions {
 	warnIf: Set<"samePage" | "sameSite" | "offSite" | "fragments">;
 }
 
-function formatOutput(result: Entry, options: OutputOptions) {
+function formatOutput(
+	result: Entry,
+	resultType: ResultType,
+	options: OutputOptions,
+) {
 	const { input, output } = result;
-	const resultType = getResultType(result, options);
 
 	if (options.silent && resultType === ResultType.ok) {
 		return null;
