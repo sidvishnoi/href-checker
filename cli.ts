@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import sade from "sade";
+import { join } from "path";
 import { readFileSync } from "fs";
 
 import { checkLinks } from "./index.js";
@@ -19,8 +20,12 @@ interface CommandLineOptions {
 	emoji: boolean;
 }
 
+const { version } = JSON.parse(
+	readFileSync(join(__dirname, "package.json"), "utf-8"),
+) as { version: string };
+
 sade("href-checker <url>", true)
-	.version(JSON.parse(readFileSync("./package.json", "utf-8")).version)
+	.version(version)
 	.example("https://example.com")
 	.example("https://sidvishnoi.github.io/ --no-off-site --format=json")
 	.example("https://www.w3.org/ --no-same-site --no-same-page --no-fragments")
