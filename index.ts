@@ -156,7 +156,8 @@ async function isLinkValid(
 		if (options.fragments && pageExists && url.hash && url.hash.length > 1) {
 			fragExists = await isFragmentValid(url.hash, page);
 		}
-		return { pageExists, fragExists, status: response?.status() };
+		const status = response ? response.status() : undefined;
+		return { pageExists, fragExists, status };
 	} catch (error) {
 		return { error };
 	} finally {
