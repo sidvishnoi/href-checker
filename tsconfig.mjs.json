@@ -1,15 +1,17 @@
 {
 	"compilerOptions": {
 		"target": "esnext",
-		"module": "CommonJS",
+		"module": "ES2020",
 		"moduleResolution": "node",
 		"removeComments": false,
 		"allowSyntheticDefaultImports": true,
-		"esModuleInterop": true,
 		"typeRoots": [
 			"./node_modules/@types",
 			"./@types"
 		],
 		"strict": true
-	}
+	},
+	"files": [
+		"index.ts"
+	]
 }
