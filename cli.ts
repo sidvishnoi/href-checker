@@ -9,10 +9,10 @@ import { Entry, Options } from "./index.js";
 import { DirectNavigationOptions } from "puppeteer";
 
 interface CommandLineOptions {
-	"same-page": boolean;
-	"same-site": boolean;
-	"off-site": boolean;
-	fragments: boolean;
+	"same-page": false | "err" | "warn";
+	"same-site": false | "err" | "warn";
+	"off-site": false | "err" | "warn";
+	fragments: false | "err" | "warn";
 	concurrency: number;
 	timeout: number;
 	"wait-until": DirectNavigationOptions["waitUntil"];
@@ -29,14 +29,14 @@ sade("href-checker <url>", true)
 	.version(version)
 	.example("https://example.com")
 	.example("https://sidvishnoi.github.io/ --no-off-site --format=json")
-	.example("https://www.w3.org/ --no-same-site --no-same-page --no-fragments")
-	.option("--same-page", "Check same-page (fragment) links", true)
-	.option("--same-site", "Check same-site links", true)
-	.option("--off-site", "Check external links", true)
+	.example("https://www.w3.org/ --no-same-site --no-same-page --fragments=err")
+	.option("--same-page", "Check same-page (fragment) links", "err")
+	.option("--same-site", "Check same-site links", "err")
+	.option("--off-site", "Check external links", "err")
 	.option(
 		"--fragments",
 		"Check for existence of IDs corresponding to fragments",
-		true,
+		"warn",
 	)
 	.option("--concurrency -c", "How many links to check at a time", 5)
 	.option("--timeout", "Timeout (in seconds) for navigation", 20)
@@ -50,24 +50,7 @@ sade("href-checker <url>", true)
 	.option("--emoji", "Use emoji in output (with --format=pretty)", true)
 	.action(async (url: string, options: CommandLineOptions) => {
 		try {
-			await main(new URL(url), {
-				options: {
-					samePage: options["same-page"],
-					sameSite: options["same-site"],
-					offSite: options["off-site"],
-					fragments: options.fragments,
-					concurrency: options.concurrency,
-					puppeteer: {
-						timeout: options.timeout * 1000,
-						waitUntil: options["wait-until"],
-					},
-				},
-				outputOptions: {
-					emoji: options.emoji,
-					silent: options.silent,
-					format: options.format || "pretty",
-				},
-			});
+			await main(new URL(url), options);
 		} catch (error) {
 			console.error(error.message);
 			process.exit(1);
@@ -75,35 +58,69 @@ sade("href-checker <url>", true)
 	})
 	.parse(process.argv);
 
-interface Opts {
-	options: Options;
-	outputOptions: {
-		emoji: CommandLineOptions["emoji"];
-		format: CommandLineOptions["format"];
-		silent: CommandLineOptions["silent"];
+async function main(url: URL, opts: CommandLineOptions) {
+	const options: Options = {
+		samePage: opts["same-page"] !== false,
+		sameSite: opts["same-site"] !== false,
+		offSite: opts["off-site"] !== false,
+		fragments: opts.fragments !== false,
+		concurrency: opts.concurrency,
+		puppeteer: {
+			timeout: opts.timeout * 1000,
+			waitUntil: opts["wait-until"],
+		},
 	};
-}
-async function main(url: URL, { options, outputOptions }: Opts) {
-	if (!outputOptions.silent && outputOptions.format !== "json") {
-		console.log(`Navigating to ${url} ...`);
+
+	const errorIf: OutputOptions["errorIf"] = new Set();
+	const warnIf: OutputOptions["warnIf"] = new Set();
+	const LinkType = {
+		"same-page": "samePage",
+		"same-site": "sameSite",
+		"off-site": "offSite",
+		fragments: "fragments",
+	} as const;
+	for (const type of Object.keys(LinkType) as Array<keyof typeof LinkType>) {
+		const linkType = LinkType[type];
+		if (opts[type] === "err") {
+			errorIf.add(linkType);
+		} else if (opts[type] === "warn") {
+			warnIf.add(linkType);
+		}
 	}
+	const outputOptions: OutputOptions = {
+		silent: opts.silent,
+		format: opts.format || "pretty",
+		emoji: opts.format === "json" ? false : opts.emoji,
+		errorIf,
+		warnIf,
+	};
+
 	for await (const result of checkLinks(url, options)) {
 		const output = formatOutput(result, outputOptions);
 		if (output) console.log(output);
 	}
 }
 
-function formatOutput(result: Entry, options: Opts["outputOptions"]) {
+interface OutputOptions {
+	silent: CommandLineOptions["silent"];
+	format: CommandLineOptions["format"];
+	emoji: CommandLineOptions["emoji"];
+	errorIf: Set<"samePage" | "sameSite" | "offSite" | "fragments">;
+	warnIf: Set<"samePage" | "sameSite" | "offSite" | "fragments">;
+}
+
+function formatOutput(result: Entry, options: OutputOptions) {
 	const { input, output } = result;
-	const resultType = getResultType(result);
+	const resultType = getResultType(result, options);
 
 	if (options.silent && resultType === ResultType.ok) {
 		return null;
 	}
+	const statusSummary = getResultText(resultType, options.emoji);
 
 	if (options.format === "json") {
 		// @ts-ignore
-		result.output.summary = getResultText(resultType);
+		result.output.summary = statusSummary;
 		if (result.output.error) {
 			const { name, message } = result.output.error;
 			result.output.error = { name, message };
@@ -111,14 +128,11 @@ function formatOutput(result: Entry, options: Opts["outputOptions"]) {
 		return JSON.stringify(result);
 	}
 
-	const status = options.emoji
-		? getResultEmoji(resultType)
-		: getResultText(resultType);
 	const statusCode =
 		!output.error && !output.pageExists && output.status
 			? ` {${output.status}}`
 			: "";
-	let text = `[${result.type}]\t${status}\t${input.link} [x${input.count}]${statusCode}`;
+	let text = `[${result.type}]\t${statusSummary}\t${input.link} [x${input.count}]${statusCode}`;
 	if (output.error) {
 		text += ` (${output.error})`;
 	}
@@ -127,41 +141,44 @@ function formatOutput(result: Entry, options: Opts["outputOptions"]) {
 
 const enum ResultType {
 	ok,
-	invalidPage,
-	invalidFragment,
-	error,
+	fail,
+	warn,
+	err,
 }
 
-function getResultType(result: Entry): ResultType {
-	const { error, pageExists, fragExists } = result.output;
-	if (error) return ResultType.error;
-	if (!pageExists) return ResultType.invalidPage;
-	if (typeof fragExists !== "boolean") return ResultType.ok;
-	return fragExists ? ResultType.ok : ResultType.invalidFragment;
-}
+function getResultType(result: Entry, options: OutputOptions) {
+	const { pageExists, fragExists, error } = result.output;
 
-function getResultEmoji(resultType: ResultType) {
-	switch (resultType) {
-		case ResultType.ok:
-			return "✅";
-		case ResultType.invalidPage:
-			return "❌";
-		case ResultType.invalidFragment:
-			return "🚧";
-		case ResultType.error:
-			return "🚨";
+	if (error) {
+		return ResultType.err;
 	}
+
+	if (
+		(!pageExists && options.errorIf.has(result.type)) ||
+		(fragExists === false && options.errorIf.has("fragments"))
+	) {
+		return ResultType.fail;
+	}
+
+	if (
+		(!pageExists && options.warnIf.has(result.type)) ||
+		(fragExists === false && options.warnIf.has("fragments"))
+	) {
+		return ResultType.warn;
+	}
+
+	return ResultType.ok;
 }
 
-function getResultText(resultType: ResultType) {
+function getResultText(resultType: ResultType, emoji: boolean) {
 	switch (resultType) {
 		case ResultType.ok:
-			return "ok";
-		case ResultType.invalidPage:
-			return "fail";
-		case ResultType.invalidFragment:
-			return "warn";
-		case ResultType.error:
-			return "err";
+			return emoji ? "✅" : "ok";
+		case ResultType.fail:
+			return emoji ? "❌" : "fail";
+		case ResultType.warn:
+			return emoji ? "🚧" : "warn";
+		case ResultType.err:
+			return emoji ? "🚨" : "err";
 	}
 }
