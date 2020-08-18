@@ -1,6 +1,6 @@
 {
 	"name": "href-checker",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"description": "Hyperlink checker for HTML pages which checks href attributes by actually visiting linked pages and also checking existence of URL fragments.",
 	"keywords": [
 		"link-checker",
