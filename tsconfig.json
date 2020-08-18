@@ -6,10 +6,6 @@
 		"removeComments": false,
 		"allowSyntheticDefaultImports": true,
 		"esModuleInterop": true,
-		"typeRoots": [
-			"./node_modules/@types",
-			"./@types"
-		],
 		"strict": true
 	}
 }
