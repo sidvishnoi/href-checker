@@ -41,10 +41,8 @@ export PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome
 npm install href-checker
 ```
 
-The package is available as an ES module.
-
 ```js
-import { checkLinks } from "href-checker";
+const { checkLinks } = require("href-checker");
 
 for await (const result of checkLinks(url, options)) {
 	console.log(result.type);
