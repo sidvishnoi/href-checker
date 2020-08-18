@@ -28,13 +28,13 @@
 		"build": "tsc -d -p tsconfig.json"
 	},
 	"dependencies": {
-		"puppeteer": "^4.0.1",
+		"puppeteer": "^5.2.1",
 		"sade": "^1.7.3"
 	},
 	"devDependencies": {
-		"@types/puppeteer": "^3.0.0",
+		"@types/puppeteer": "^3.0.1",
 		"@types/sade": "^1.7.2",
-		"typescript": "^3.9.5"
+		"typescript": "^3.9.7"
 	},
 	"engines": {
 		"node": ">= 12.11"
