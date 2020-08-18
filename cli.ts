@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import sade from "sade";
-import { join } from "path";
-import { readFileSync } from "fs";
+import { join, resolve } from "path";
+import { readFileSync, existsSync } from "fs";
 
 import { checkLinks } from "./index.js";
 
@@ -46,7 +46,7 @@ sade("href-checker <url>", true)
 	.option("--emoji", "Use emoji in output (with --format=pretty)", true)
 	.action(async (url: string, options: CommandLineOptions) => {
 		try {
-			await main(new URL(url), options);
+			await main(url, options);
 		} catch (error) {
 			console.error(error.message);
 			process.exit(1);
@@ -54,7 +54,9 @@ sade("href-checker <url>", true)
 	})
 	.parse(process.argv);
 
-async function main(url: URL, opts: CommandLineOptions) {
+async function main(input: string, opts: CommandLineOptions) {
+	const url = normalizeURL(input);
+
 	const LinkType = {
 		"same-page": "samePage",
 		"same-site": "sameSite",
@@ -81,6 +83,11 @@ async function main(url: URL, opts: CommandLineOptions) {
 			waitUntil: opts["wait-until"],
 		},
 	};
+
+	if (url.protocol === "file:" && options.sameSite) {
+		options.sameSite = false;
+		console.warn("Warning: --same-site is ignored with local files.");
+	}
 
 	const errorIf: OutputOptions["errorIf"] = new Set();
 	const warnIf: OutputOptions["warnIf"] = new Set();
@@ -109,6 +116,21 @@ async function main(url: URL, opts: CommandLineOptions) {
 	}
 	if (hasFailures) {
 		throw new Error("Broken links found.")
+	}
+}
+
+function normalizeURL(url: string) {
+	try {
+		return new URL(url);
+	} catch {
+		if (!existsSync(url)) {
+			throw new Error(`ENOENT (No such file): ${url}`);
+		}
+		url = resolve(url).replace(/\\/g, "/");
+		if (url[0] !== "/") {
+			url = "/" + url;
+		}
+		return new URL(encodeURI("file://" + url));
 	}
 }
 
