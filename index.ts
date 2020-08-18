@@ -185,7 +185,7 @@ async function* pmap<InputType, OutputType>(
 	fn: (input: InputType) => Promise<OutputType>,
 	inputs: InputType[],
 	concurrency: number,
-	) {
+) {
 	type Output = { input: InputType; output: OutputType };
 	concurrency = Math.min(concurrency, inputs.length);
 

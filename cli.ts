@@ -115,7 +115,7 @@ async function main(input: string, opts: CommandLineOptions) {
 		if (output) console.log(output);
 	}
 	if (hasFailures) {
-		throw new Error("Broken links found.")
+		throw new Error("Broken links found.");
 	}
 }
 
