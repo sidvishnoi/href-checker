@@ -13,6 +13,7 @@ interface CommandLineOptions {
 	"same-site": boolean;
 	"off-site": boolean;
 	fragments: boolean;
+	concurrency: number;
 	timeout: number;
 	"wait-until": DirectNavigationOptions["waitUntil"];
 	format: "json" | "pretty";
@@ -37,6 +38,7 @@ sade("href-checker <url>", true)
 		"Check for existence of IDs corresponding to fragments",
 		true,
 	)
+	.option("--concurrency -c", "How many links to check at a time", 5)
 	.option("--timeout", "Timeout (in seconds) for navigation", 20)
 	.option(
 		"--wait-until",
@@ -54,6 +56,7 @@ sade("href-checker <url>", true)
 					sameSite: options["same-site"],
 					offSite: options["off-site"],
 					fragments: options.fragments,
+					concurrency: options.concurrency,
 					puppeteer: {
 						timeout: options.timeout * 1000,
 						waitUntil: options["wait-until"],

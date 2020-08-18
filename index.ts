@@ -9,6 +9,8 @@ export interface Options {
 	offSite: boolean;
 	/** Check existence of fragment links outside the current page. */
 	fragments: boolean;
+	/** How many links to check at a time? */
+	concurrency: number;
 	puppeteer: {
 		timeout: puppeteer.DirectNavigationOptions["timeout"];
 		waitUntil: puppeteer.DirectNavigationOptions["waitUntil"];
@@ -20,6 +22,7 @@ const defaults: Options = {
 	sameSite: true,
 	offSite: true,
 	fragments: true,
+	concurrency: 5,
 	puppeteer: {
 		timeout: 20_000,
 		waitUntil: "load",
@@ -43,6 +46,11 @@ export async function* checkLinks(
 ): AsyncGenerator<Entry, void, void> {
 	const opts = { ...defaults, ...options };
 	opts.puppeteer = { ...defaults.puppeteer, ...options.puppeteer };
+	if (opts.concurrency < 1 || opts.concurrency > 100) {
+		throw new Error(
+			`options.concurrency must be between 1-100, got ${opts.concurrency}.`,
+		);
+	}
 
 	let caughtError;
 
@@ -117,15 +125,14 @@ async function* checkOffPageLinks(
 	options: Options,
 ) {
 	const uniqueLinks = [...links.keys()];
-	// TODO: limit concurrency
 	// TODO: retry on TimeoutError
-	const resultPromises = uniqueLinks.map(link =>
-		isLinkValid(link, options, browser),
+	const resultIterator = pmap(
+		link => isLinkValid(link, options, browser),
+		uniqueLinks,
+		options.concurrency,
 	);
-	for (let i = 0; i < uniqueLinks.length; i++) {
-		const link = uniqueLinks[i];
-		const result = await resultPromises[i];
-		yield { input: { link, count: links.get(link)! }, output: result };
+	for await (const { input: link, output } of resultIterator) {
+		yield { input: { link, count: links.get(link)! }, output };
 	}
 }
 
@@ -172,4 +179,35 @@ function count<T>(items: T[]) {
 		counts.set(item, count + 1);
 	}
 	return counts;
+}
+
+async function* pmap<InputType, OutputType>(
+	fn: (input: InputType) => Promise<OutputType>,
+	inputs: InputType[],
+	concurrency: number,
+	) {
+	type Output = { input: InputType; output: OutputType };
+	concurrency = Math.min(concurrency, inputs.length);
+
+	const promises = [];
+	const next = (state: { value: number }): Promise<Output> => {
+		return new Promise(async resolve => {
+			const input = inputs[state.value];
+			const output = await fn(input);
+			resolve({ input, output });
+			state.value += 1;
+			if (state.value < inputs.length) {
+				const newPromise = next(state);
+				promises.push(newPromise);
+			}
+		});
+	};
+	const state = { value: 0 }; // "shared memory"
+	for (; state.value < concurrency; state.value += 1) {
+		promises.push(next(state));
+	}
+
+	for (const promise of promises) {
+		yield await promise;
+	}
 }
