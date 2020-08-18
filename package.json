@@ -30,6 +30,7 @@
 		"*.js"
 	],
 	"scripts": {
+		"prepare": "tsc -d -p tsconfig.json && tsc -p tsconfig.mjs.json --outDir mjs && mv mjs/index.js index.mjs && rm -rf mjs",
 		"build": "yarn build:cjs && yarn build:mjs",
 		"build:cjs": "tsc -d -p tsconfig.json",
 		"build:mjs": "tsc -p tsconfig.mjs.json --outDir mjs && mv mjs/index.js index.mjs && rm -rf mjs"
