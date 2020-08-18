@@ -33,11 +33,7 @@ sade("href-checker <url>", true)
 	.option("--same-page", "Check same-page (fragment) links", "err")
 	.option("--same-site", "Check same-site links", "err")
 	.option("--off-site", "Check external links", "err")
-	.option(
-		"--fragments",
-		"Check for existence of IDs corresponding to fragments",
-		"warn",
-	)
+	.option("--fragments", "Check fragment anchors", "warn")
 	.option("--concurrency -c", "How many links to check at a time", 5)
 	.option("--timeout", "Timeout (in seconds) for navigation", 20)
 	.option(
