@@ -183,9 +183,13 @@ const enum ResultType {
 }
 
 function getResultType(result: Entry, options: OutputOptions) {
-	const { pageExists, fragExists, error } = result.output;
+	const { pageExists, fragExists, error, status } = result.output;
 
 	if (error) {
+		return ResultType.err;
+	}
+
+	if (status === 429 /** Too many requests */) {
 		return ResultType.err;
 	}
 
